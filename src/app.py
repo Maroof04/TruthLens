@@ -8,9 +8,7 @@ from the LIAR dataset and uses Gemini API to generate verdicts with explanations
 import logging
 from typing import Optional
 
-import streamlit as st
-
-
+import streamlit as st   # type: ignore
 
 from search import get_retriever, RetrievalConfig
 from explain import get_explainer, ExplanationConfig
