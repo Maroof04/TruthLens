@@ -6,11 +6,11 @@ from the LIAR dataset and uses Gemini API to generate verdicts with explanations
 """
 
 import logging
-import os
 from typing import Optional
 
 import streamlit as st
-from dotenv import load_dotenv
+
+
 
 from search import get_retriever, RetrievalConfig
 from explain import get_explainer, ExplanationConfig
@@ -18,8 +18,7 @@ from explain import get_explainer, ExplanationConfig
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Load environment variables
-load_dotenv()
+
 
 # Streamlit page configuration
 st.set_page_config(
@@ -145,15 +144,16 @@ def init_retriever() -> object:
 @st.cache_resource
 def init_explainer() -> object:
     """Initialize and cache the explanation engine."""
-    api_key = os.getenv("GOOGLE_API_KEY")
     
-    if not api_key:
+    # Get API key from Streamlit secrets
+    try:
+        api_key = st.secrets["GOOGLE_API_KEY"]
+    except KeyError:
         st.error(
-            "❌ GOOGLE_API_KEY environment variable not set. "
-            "Please add it to your .env file."
+            "❌ GOOGLE_API_KEY not found. Please add it to `.streamlit/secrets.toml`."
         )
         st.stop()
-    
+
     try:
         config = ExplanationConfig(
             model_name="gemini-2.5-flash",
@@ -161,10 +161,12 @@ def init_explainer() -> object:
             max_tokens=500
         )
         return get_explainer(api_key, config)
+    
     except ValueError as e:
         st.error(f"❌ Failed to initialize Gemini API: {e}")
         logger.error(f"Explainer initialization error: {e}")
         st.stop()
+
 
 
 def get_verdict_color(verdict: str) -> str:
